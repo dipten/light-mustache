@@ -27,6 +27,3 @@ This step is not mandatory. On dev box we compile the template every time before
 
 Performance:
 Here is page stitching time comparison between Mustache and Light Mustache. Overall time will look high since it has been measured in staging environment which has JS/CSS combo disabled and debug logging turned on. 
- 
-
-Unit of time is seconds here.
