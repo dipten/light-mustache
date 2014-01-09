@@ -1,0 +1,12 @@
+{{#var1}}
+    {{#var2}}
+       {{#var3}}
+           {{#var1.f}}
+                Hello
+           {{/var1.f}}
+           {{^var1.f}}
+                World
+           {{/var1.f}}
+       {{/var3}}
+    {{/var2}}
+{{/var1}}

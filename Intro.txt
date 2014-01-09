@@ -1,0 +1,32 @@
+I already know Mustache but what is Handlebars ?
+Handlebars is an extension of Mustache with some extra features. Most importantly it separates out template compilation and markup generation phases which speeds up the rendering of data significantly compared to Mustache. Contrary to Mustache’s philosophy of being logic-less, Handlebars provides some basic extensions to make it easy to manipulate the data that is used on the templates. 
+
+Handlebars seems to be better than mustache lets use it on server side .. 
+Handlebar supports helper functions that allows us to replace YALA strings at compile time. But sometimes we want to decide the string at runtime based on data. Unfortunately, handlebars does not provide any hook into the runtime code generation phase.
+
+What is lightncandy ?
+Lightncandy is a PHP library which supports a subset of Handlebars features and takes advantage of Zend Compiler by converting the template into PHP. You can read more about lightncandy here https://github.com/zordius/lightncandy
+
+Lightncandy does not fit our purpose completely because 
+It supports Handlebars syntax but all our templates are written as per Mustache syntax
+Handlebars does not provide any hook into the runtime code generation phase. Hence we won't be able to use YALA string that can be evaluated only at runtime e.g FMT_MEMBERS={0, choice, 0# members|1# member|1< members} 
+
+Light Mustache = lightncandy + Mustache
+Here comes Light-mustache, our implementation of lightncandy. It is a variant of lightncandy with necessary modifications made to circumvent the issues mentioned above. 
+
+What changes now from developer point of view ?
+Nothing, you do not need to install any additional package to use this. All necessary codes has already been checked in. Just you need to run the following commands to bootstrap your machine. This is required only the first time after syncing your code
+sudo gmake localconf
+gmake generate_templates
+
+To see the how the compiled files look like after fetching the latest code from upstream run
+1. make generate_templates
+2. cd yg/templates/compiled
+
+This step is not mandatory. On dev box we compile the template every time before rendering so that you don't need to run make generate_templates every time you make a template change.
+
+Performance:
+Here is page stitching time comparison between Mustache and Light Mustache. Overall time will look high since it has been measured in staging environment which has JS/CSS combo disabled and debug logging turned on. 
+ 
+
+Unit of time is seconds here.

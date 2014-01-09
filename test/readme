@@ -1,0 +1,12 @@
+You should run the generate_markup script in the following way to compile the template and generate the markup
+php generate_markup.php test_template3.mu
+
+Sample Mustache Template Files
+test_template1.mu
+test_template2.mu
+test_template3.mu
+
+Generated PHP file after compilation
+test_template1.php
+test_template2.php
+test_template3.php
