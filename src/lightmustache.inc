@@ -90,8 +90,8 @@ class LightMustache {
                 'rootthis' => 0,
                 'enc' => 0,
                 'raw' => 0,
-                'sec' => 0,
-                'isec' => 0,
+                'exec' => 0,
+                'iexec' => 0,
                 'if' => 0,
                 'else' => 0,
                 'unless' => 0,
@@ -147,7 +147,7 @@ class LightMustache {
 
         // Check used features and compile flags. If the template is simple enough,
         // we can generate best performance code with enable 'useVar' internal flag.
-        if (!$context['flags']['jsobj'] && (($context['usedFeature']['sec'] + $context['usedFeature']['parent'] < 1) || !$context['flags']['jsobj'])) {
+        if (!$context['flags']['jsobj'] && (($context['usedFeature']['exec'] + $context['usedFeature']['parent'] < 1) || !$context['flags']['jsobj'])) {
             $context['useVar'] = Array('$in');
         }
 
@@ -163,7 +163,7 @@ class LightMustache {
         $flagJStrue = self::_on($context['flags']['jstrue']);
         $flagJSObj = self::_on($context['flags']['jsobj']);
 
-        $libstr = self::exportLCRun($context);
+        $libstr = self::exportLMRun($context);
 
         // return generated PHP code string
         return "<?php return function (\$in) {
@@ -258,12 +258,12 @@ $libstr
      *
      * @param string $context current scaning context
      */
-    protected static function exportLCRun($context) {
+    protected static function exportLMRun($context) {
         if ($context['flags']['standalone'] == 0) {
             return '';
         }
 
-        $class = new ReflectionClass('LCRun');
+        $class = new ReflectionClass('LMRun');
         $fname = $class->getFileName();
         $lines = file_get_contents($fname);
         $file = new SplFileObject($fname);
@@ -416,7 +416,7 @@ $libstr
      * @return string compiled Function name
      */
     protected static function _fn($context, $name) {
-        return $context['flags']['standalone'] ? "\$cx['funcs']['$name']" : "LCRun::$name";
+        return $context['flags']['standalone'] ? "\$cx['funcs']['$name']" : "LMRun::$name";
     }
 
     /**
@@ -572,7 +572,7 @@ $libstr
         case '^':
             $context['stack'][] = $token[2];
             $context['level']++;
-            return $context['usedFeature']['isec']++;
+            return $context['usedFeature']['iexec']++;
 
         case '/':
             array_pop($context['stack']);
@@ -597,7 +597,7 @@ $libstr
                 return $context['usedFeature']['yrb']++;
 
             default:
-                return $context['usedFeature']['sec']++;
+                return $context['usedFeature']['exec']++;
             }
 
         case '!':
@@ -674,7 +674,7 @@ $libstr
                     return $context['ops']['seperator'] . self::_fn($context, 'ifcond') . "('$act', \$cx, \$in, function(\$cx, \$in) {{$context['ops']['f_start']}";
                 }
             } else {
-                return "{$context['ops']['cnd_start']}(" . self::_fn($context, 'isec') . "('$act', \$cx, \$in)){$context['ops']['cnd_then']}";
+                return "{$context['ops']['cnd_start']}(" . self::_fn($context, 'iexec') . "('$act', \$cx, \$in)){$context['ops']['cnd_then']}";
             }
         case '/':
             $each = false;
@@ -754,7 +754,7 @@ $libstr
                 self::_jsp($context);
                 $context['stack'][] = $act;
                 $context['stack'][] = '#';
-                return $context['ops']['seperator'] . self::_fn($context, 'sec') . "('$act', \$cx, \$in, $each, function(\$cx, \$in) {{$context['ops']['f_start']}";
+                return $context['ops']['seperator'] . self::_fn($context, 'exec') . "('$act', \$cx, \$in, $each, function(\$cx, \$in) {{$context['ops']['f_start']}";
             }
         case '!':
             return $context['ops']['seperator'];
@@ -792,7 +792,7 @@ $libstr
 /**
  * LightMustache static class for compiled template runtime methods.
  */
-class LCRun {
+class LMRun {
     public static $yrb; 
     public static $locale;
 
@@ -825,17 +825,17 @@ class LCRun {
      * @param array $cx render time context
      * @param array $in input data with current scope
      * @param function $truecb callback function when test result is true
-     * @param function $falsecb callback function when test result is false
+     * @param function $falexecb callback function when test result is false
      *
      * @return string The rendered string of the section
      */
-    public static function ifv($var, $cx, $in, $truecb, $falsecb = null) {
+    public static function ifv($var, $cx, $in, $truecb, $falexecb = null) {
         $v = self::val($var, $cx, $in);
         $ret = '';
         if (is_null($v) || ($v === false) || ($v === '0') || ($v === 0) || ($v === '') || (is_array($v) && (count($v) == 0))) {
-            if ($falsecb) {
+            if ($falexecb) {
                 $cx['scopes'][] = $in;
-                $ret = $falsecb($cx, $in);
+                $ret = $falexecb($cx, $in);
                 array_pop($cx['scopes']);
             }
         } else {
@@ -857,8 +857,8 @@ class LCRun {
      *
      * @return boolean Return true when the value is not null nor false.
      */
-    public static function unl($var, $cx, $in, $truecb, $falsecb = null) {
-        return self::ifv($var, $cx, $in, $falsecb, $truecb);
+    public static function unl($var, $cx, $in, $truecb, $falexecb = null) {
+        return self::ifv($var, $cx, $in, $falexecb, $truecb);
     }
 
     /**
@@ -870,7 +870,7 @@ class LCRun {
      *
      * @return boolean Return true when the value is not null nor false.
      */
-    public static function isec($var, $cx, $in) {
+    public static function iexec($var, $cx, $in) {
         $v = self::val($var, $cx, $in);
         return ($v === '') || empty($v) || ($v === false);
     }
@@ -979,7 +979,7 @@ class LCRun {
      *
      * @return string The rendered string of the section
      */
-    public static function sec($var, &$cx, $in, $each, $cb) {
+    public static function exec($var, &$cx, $in, $each, $cb) {
         if (preg_match('/(.+?)\\.(.+)/', $var, $matched)) {
             $v = self::evalVar($var, $cx, $in);
         }
